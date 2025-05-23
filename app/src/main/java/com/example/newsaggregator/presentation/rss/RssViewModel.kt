@@ -30,8 +30,9 @@ class RssViewModel @Inject constructor(
                 }
                 _uiState.value = RssUiState.Success(news)
             } catch (e: Exception) {
-                _uiState.value = RssUiState.Error("Ошибка загрузки новостей: ${e.message}")
+                _uiState.value = RssUiState.Error("Не удалось загрузить новости. Попробуйте позже.")
             }
+
         }
     }
 

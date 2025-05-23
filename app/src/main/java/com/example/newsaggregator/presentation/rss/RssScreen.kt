@@ -18,6 +18,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.rememberAsyncImagePainter
 import com.example.newsaggregator.domain.Item
+import androidx.core.text.HtmlCompat
 
 @Composable
 fun RssScreen(
@@ -87,12 +88,34 @@ fun NewsList(news: List<Item>) {
                         Text("Закрыть")
                     }
                 },
-                title = { Text(item.title) },
+                title = { Text(text = item.title.cleanHtml()) },
                 text = {
-                    Column {
-                        Text(text = item.description)
-                        Text(text = "Автор: ${item.author ?: "Неизвестен"}")
-                        Text(text = "Категории: ${item.categories.joinToString()}")
+                    Column(modifier = Modifier.padding(top = 8.dp)) {
+                        item.description?.let {
+                            Text(
+                                text = it.cleanHtml(),
+                                style = MaterialTheme.typography.body1
+                            )
+                            Spacer(modifier = Modifier.height(8.dp))
+                        }
+                        Text(
+                            text = "Автор: ${item.author ?: "Неизвестен"}",
+                            style = MaterialTheme.typography.body2
+                        )
+                        if (item.categories.isNotEmpty()) {
+                            Spacer(modifier = Modifier.height(4.dp))
+                            Text(
+                                text = "Категории: ${item.categories.joinToString()}",
+                                style = MaterialTheme.typography.body2
+                            )
+                        }
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(
+                            text = "Дата публикации: ${item.pubDate}",
+                            style = MaterialTheme.typography.caption,
+                            color = MaterialTheme.colors.onSurface.copy(alpha = 0.6f)
+                        )
+
                     }
                 }
             )
@@ -100,32 +123,56 @@ fun NewsList(news: List<Item>) {
     }
 }
 
+
 @Composable
 fun NewsCard(item: Item, onClick: () -> Unit) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
+            .heightIn(min = 120.dp) // Минимальная высота карточки
             .clickable { onClick() },
-        elevation = 4.dp
+        elevation = 6.dp, // немного больше "всплытие"
+        shape = MaterialTheme.shapes.medium
     ) {
-        Row(modifier = Modifier.padding(16.dp)) {
+        Row(modifier = Modifier.padding(20.dp)) {
             item.imageUrl?.let { imageUrl ->
                 Image(
                     painter = rememberAsyncImagePainter(imageUrl),
                     contentDescription = null,
                     modifier = Modifier
-                        .size(80.dp)
-                        .padding(end = 16.dp)
+                        .size(100.dp) // увеличено
+                        .padding(end = 20.dp)
                 )
             }
-            Column(modifier = Modifier.weight(1f)) {
-                Text(text = item.title, fontWeight = FontWeight.Bold)
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(text = item.pubDate, style = MaterialTheme.typography.body2)
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxHeight(),
+                verticalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text(
+                    text = item.title,
+                    fontWeight = FontWeight.Bold,
+                    style = MaterialTheme.typography.subtitle1
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = item.pubDate,
+                    style = MaterialTheme.typography.body2
+                )
                 item.author?.let {
-                    Text(text = "Автор: $it", style = MaterialTheme.typography.body2)
+                    Text(
+                        text = "Автор: $it",
+                        style = MaterialTheme.typography.body2
+                    )
                 }
             }
         }
     }
 }
+
+
+fun String.cleanHtml(): String {
+    return HtmlCompat.fromHtml(this, HtmlCompat.FROM_HTML_MODE_COMPACT).toString()
+}
+
